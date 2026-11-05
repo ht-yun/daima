@@ -1,0 +1,26 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+build/
+
+# 运行时数据
+logs/
+data/
+*.log
+
+# 本地配置（含密钥，绝对不要提交）
+.env
+.env.local
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 临时目录
+_shots/
+_preview/
+_test/
+_tmp/
+*.zip

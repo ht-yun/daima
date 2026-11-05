@@ -1,0 +1,68 @@
+码审 CodeReview · 部署说明
+========================================
+
+【包内容】
+  src/            前端源码
+  server/         后端服务入口 server/index.mjs（零第三方依赖）
+  public/         静态资源（app.ico）
+  dist/           已构建好的前端产物，可直接运行
+  eng.traineddata OCR 语言包（在根目录，tools 下的 OCR 脚本使用）
+  .env            配置：模型 Key、登录账号、端口
+  ecosystem.config.cjs  pm2 配置（端口 8080 已内置）
+  package.json / vite.config.ts / tsconfig.json
+  docs/           文档
+
+【不含】node_modules（体积大且平台相关，后端也不需要）
+
+----------------------------------------
+一、本地运行
+----------------------------------------
+  1. npm install
+  2. npm run build      （dist 已附带，可跳过）
+  3. node server/index.mjs
+  4. 浏览器打开 http://127.0.0.1:8080
+
+----------------------------------------
+二、服务器部署（Windows Server + pm2）
+----------------------------------------
+  1. 安装 Node.js 22：
+     https://npmmirror.com/mirrors/node/v22.11.0/node-v22.11.0-x64.msi
+
+  2. 上传整个目录到 C:\codereview\src-app
+     （可以只传 dist、server、.env、ecosystem.config.cjs，约 1 MB）
+
+  3. 安装 pm2：
+     npm install -g pm2
+
+  4. 启动：
+     cd C:\codereview\src-app
+     pm2 start ecosystem.config.cjs
+
+  5. 开机自启：
+     npm install -g pm2-windows-startup
+     pm2-startup install
+     pm2 save
+
+  6. 放行端口：
+     New-NetFirewallRule -DisplayName 'CodeReview 8080' -Direction Inbound -Protocol TCP -LocalPort 8080 -Action Allow
+     阿里云安全组 → 入方向 → TCP 8080/8080 → 0.0.0.0/0
+
+  7. 访问：http://服务器IP:8080
+
+     （当前测试机：http://你的服务器IP:8080）
+
+----------------------------------------
+三、常用运维
+----------------------------------------
+  pm2 status
+  pm2 logs codereview --lines 50
+  pm2 restart codereview
+  pm2 save
+
+----------------------------------------
+四、安全提醒
+----------------------------------------
+  1. .env 内有 DeepSeek 与千问的真实 API Key，
+     转发/上传前务必确认接收方可信，或先替换为占位符。
+  2. 默认登录密码较简单，公网部署前请修改 .env 中的 APP_USERS。
+  3. 服务监听 0.0.0.0，安全组只需放行 8080，不要放行 5173/8787。
